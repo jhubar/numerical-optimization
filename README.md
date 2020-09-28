@@ -7,6 +7,8 @@
 
 [Project 1](https://www.overleaf.com/5123756252mjsgkkbkdjrg)
 
+Link git of the project: git clone https://git.overleaf.com/5f71dc2e0cae460001387b8e
+
 # Teaching assistant link of the course. 
 1. [Web page](https://people.montefiore.uliege.be/mberger/)
 # Authors
