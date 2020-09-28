@@ -5,7 +5,7 @@
 
 # Report project
 
-[Project 1](https://people.montefiore.uliege.be/mberger/)
+[Project 1](https://people.montefiore.uliege.be/mberger)
 
 # Teaching assistant link of the course. 
 1. [Web page]()
