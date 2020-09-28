@@ -5,10 +5,10 @@
 
 # Report project
 
-[Project 1](https://people.montefiore.uliege.be/mberger)
+[Project 1]()
 
 # Teaching assistant link of the course. 
-1. [Web page]()
+1. [Web page](https://people.montefiore.uliege.be/mberger/)
 # Authors
 1. [Julien Hubar](https://github.com/julien1941)
 1. [Stéphane Champailler](https://github.com/wiz21b)
