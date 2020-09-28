@@ -2,49 +2,36 @@ using JuMP
 using Gurobi
 using MosekTools
 
-# DEFINE PARAMETERS
 
-T = 5
-dT = 1
-S_B = 20
-F_H2 = 2
-C = Dict([(1,8), (2,12), (3,15), (4,20), (5,15)])
-pi_S = Dict([(1,0), (2,5), (3,20), (4,15), (5,3)])
+MILK_LITERS_PER_WEEK = 80 # number of produced liters per week
+HOURS_PER_WEEK = 6 # work hours per week
+FRIDGE_LITERS = 20 # storage capacity for ice cream
 
-# CREATE EMPTY MODEL
+BUTTER_LITER = 7 # liters of milk for 1 kg butter
+BUTTER_PRICE_PER_KILO = 7
+BUTTER_HOUR_PER_KILO = 1
+
+ICE_CREAM_LITER = 3 # liters of milk for 1 kg butter
+ICE_CREAM_PRICE_PER_KILO = 2
+ICE_CREAM_HOUR_PER_KILO = 1/15
+
 
 LP_model = Model(Gurobi.Optimizer)
 
-# ADD VARIABLES
+# usual LP constraints
+@variable(LP_model, 0 <= butter_kilo)
+@variable(LP_model, 0 <= ice_cream_liter)
 
-@variable(LP_model, 0 <= P_I[1:T])
-@variable(LP_model, 0 <= P_S[1:T])
-@variable(LP_model, P_B[1:T])
-@variable(LP_model, P_H2[1:T])
-@variable(LP_model, 0 <= E_B[1:T])
-@variable(LP_model, 0 <= E_H2[1:T])
 
-# ADD CONSTRAINTS
+@constraint(LP_model, max_fridge, ice_cream_liter <= FRIDGE_LITERS)
 
-@constraint(LP_model, power_balance[t = 1:T], P_I[t] + P_S[t] + P_B[t] + P_H2[t] == C[t])
-@constraint(LP_model, solar_PV_production[t = 1:T], P_S[t] <= pi_S[t])
-@constraint(LP_model, battery_storage_dynamics[t = 1:T-1], E_B[t+1] == E_B[t] - P_B[t]*dT)
-@constraint(LP_model, battery_max_state_of_charge[t = 1:T], E_B[t] <= S_B)
-@constraint(LP_model, hydrogen_storage_dynamics[t = 1:T-1], E_H2[t+1] == E_H2[t] - P_H2[t]*dT)
-@constraint(LP_model, hydrogen_storage_max_power[t = 1:T-1], -F_H2 <= P_H2[t] <= F_H2)
+# Number of hours put into production shall not go over HOURS_PER_WEEK
+@constraint(LP_model, max_prod, butter_kilo * BUTTER_HOUR_PER_KILO + ice_cream_liter * ICE_CREAM_HOUR_PER_KILO <= HOURS_PER_WEEK)
 
-# ADD OBJECTIVE
-
-@objective(LP_model, Min, sum(P_I))
-
-# WRITE MODEL TO FILE
-
-write_to_file(LP_model, "model.mps")
-
-# SOLVE MODEL
+# Maximize profit
+@objective(LP_model, Max, BUTTER_PRICE_PER_KILO*butter_kilo + ICE_CREAM_PRICE_PER_KILO*ice_cream_liter)
 
 optimize!(LP_model)
 
-# RETRIEVE SOLUTIONS
 
-battery_state_of_charge = value.(E_B)
+println("Kilos of butter per week = $(value(butter_kilo)), liters of icecream per week = $(value( ice_cream_liter))")
