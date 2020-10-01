@@ -88,7 +88,11 @@ function pivoting!(t::SimplexTableau)
 
   # Updating b_idx
   #findall(fct, blabla)
-  t.b_idx[ findall(t.b_idx .== t.b_idx[exiting]) ] = entering
+  println("entering:  ", entering)
+  println("t.b_idx: ", t.b_idx)
+  println("t.b_idx[exiting]:  ",t.b_idx[exiting])
+
+  t.b_idx[ findall(x->x == t.b_idx[exiting],t.b_idx ) ] = entering
   println("hoihaihaz")
 end
 
