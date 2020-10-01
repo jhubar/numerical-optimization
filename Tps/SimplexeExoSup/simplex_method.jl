@@ -87,6 +87,7 @@ function pivoting!(t::SimplexTableau)
   t.obj -= coef * t.x_B[exiting]
 
   # Updating b_idx
+  #findall(fct, blabla)
   t.b_idx[ findall(t.b_idx .== t.b_idx[exiting]) ] = entering
   println("hoihaihaz")
 end
