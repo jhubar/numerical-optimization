@@ -91,9 +91,11 @@ function pivoting!(t::SimplexTableau)
   println("entering:  ", entering)
   println("t.b_idx: ", t.b_idx)
   println("t.b_idx[exiting]:  ",t.b_idx[exiting])
-
-  t.b_idx[ findall(x->x == t.b_idx[exiting],t.b_idx ) ] = entering
   println("hoihaihaz")
+  println(  t.b_idx[findall(x->x .== 5, [5 6 7] )])
+  println("yesssss")
+  t.b_idx[ findall(x->x .= t.b_idx[exiting], t.b_idx ) ] = entering
+  println("yesssss")
 end
 
 function pivot_point(t::SimplexTableau)
