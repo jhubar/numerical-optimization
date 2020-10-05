@@ -76,7 +76,7 @@ function pivoting!(t::SimplexTableau)
   entering, exiting = pivot_point(t)
   println("Pivoting: entering = x_$entering, exiting = x_$(t.b_idx[exiting])")
 
-    print_tableau(t)
+  print_tableau(t)
 
   # Pivoting: exiting-row, entering-column
   # updating exiting-row : row <- row / coef
@@ -84,17 +84,17 @@ function pivoting!(t::SimplexTableau)
   t.Y[exiting, :] /= coef # So t.Y[exiting,entering] becomes 1
   t.x_B[exiting] /= coef
 
-    print_tableau(t)
+  print_tableau(t)
 
   # updating other rows of Y
   for i in setdiff(1:m, exiting)
-      coef = t.Y[i, entering]
+    coef = t.Y[i, entering]
 
-      # i-th row <- i-th row - coef*exiting row
-      # note that on the entering column, Y[enter,exit] = 1
-      # so the whole exit-column is set to zero
-      t.Y[i, :] -= coef * t.Y[exiting, :]
-      t.x_B[i] -= coef * t.x_B[exiting]
+    # i-th row <- i-th row - coef*exiting row
+    # note that on the entering column, Y[enter,exit] = 1
+    # so the whole exit-column is set to zero
+    t.Y[i, :] -= coef * t.Y[exiting, :]
+    t.x_B[i] -= coef * t.x_B[exiting]
   end
 
   # updating the row for the reduced costs
@@ -109,26 +109,26 @@ function pivoting!(t::SimplexTableau)
   println("t.b_idx[exiting]:  ",t.b_idx[exiting])
   println("hoihaihaz")
   println(  t.b_idx[findall(x->x == 5, [5 6 7] )])
-    println("yesssss")
+  println("yesssss")
 
-    f = findall(x->x == t.b_idx[exiting], t.b_idx )[1]
+  f = findall(x->x == t.b_idx[exiting], t.b_idx )[1]
 
-    t.b_idx[ f ] = entering
-    println("yesssss")
+  t.b_idx[ f ] = entering
+  println("yesssss")
 end
 
 function pivot_point(t::SimplexTableau)
-    # Finding the entering variable index
+  # Finding the entering variable index
 
-    # find any k such as z_k - c_k > 0
+  # find any k such as z_k - c_k > 0
 
-    entering = findfirst(t.z_c .> 0)
+  entering = findfirst(t.z_c .> 0)
 
-    if entering == nothing
-        error("Optimal")
-    else
-        entering = entering[2]
-    end
+  if entering == nothing
+    error("Optimal")
+  else
+    entering = entering[2]
+  end
 
   # min ratio test / finding the exiting variable index
   pos_idx = findall( t.Y[:, entering] .> 0 ) # feasible solution
@@ -136,53 +136,53 @@ function pivot_point(t::SimplexTableau)
     error("Unbounded")
   end
 
-    # Y [row, col]
+  # Y [row, col]
 
-    println("find pivot point")
-    println( pos_idx)
+  println("find pivot point")
+  println( pos_idx)
 
-    println(t.x_B[pos_idx] ./ t.Y[pos_idx, entering])
-    println(argmin(t.x_B[pos_idx] ./ t.Y[pos_idx, entering]))
+  println(t.x_B[pos_idx] ./ t.Y[pos_idx, entering])
+  println(argmin(t.x_B[pos_idx] ./ t.Y[pos_idx, entering]))
 
-    exiting = pos_idx[ argmin( t.x_B[pos_idx] ./ t.Y[pos_idx, entering] ) ]
+  exiting = pos_idx[ argmin( t.x_B[pos_idx] ./ t.Y[pos_idx, entering] ) ]
 
-    println("entering $entering")
-    println( "exiting $exiting")
+  println("entering $entering")
+  println( "exiting $exiting")
 
   return (entering, exiting)
 end
 
 function initialize(c, A, b)
-    c = Array{Float64}(c)
-    A = Array{Float64}(A)
-    b = Array{Float64}(b)
+  c = Array{Float64}(c)
+  A = Array{Float64}(A)
+  b = Array{Float64}(b)
 
-    m, n = size(A)
+  m, n = size(A)
 
-    # Finding an initial BFS x_B, and a base
-    # and list of column indices of that base in A
-    b_idx, x_B, B = initial_BFS(A,b)
+  # Finding an initial BFS x_B, and a base
+  # and list of column indices of that base in A
+  b_idx, x_B, B = initial_BFS(A,b)
 
-    Y = inv(B) * A
+  Y = inv(B) * A
 
-    # we keep the basic variables and set non basic variable to 0
-    # in the cost function. => we express the cost function
-    # in terms of (non zero) basic variables
-    c_B = c[b_idx]
+  # we keep the basic variables and set non basic variable to 0
+  # in the cost function. => we express the cost function
+  # in terms of (non zero) basic variables
+  c_B = c[b_idx]
 
-    # we compute the value of the objective function at the BFS
-    obj = dot(c_B, x_B)
+  # we compute the value of the objective function at the BFS
+  obj = dot(c_B, x_B)
 
 
-    # z_c is a row of 0
-    z_c = zeros(1,n)
-    n_idx = setdiff(1:n, b_idx) #indices of non basic variables
+  # z_c is a row of 0
+  z_c = zeros(1,n)
+  n_idx = setdiff(1:n, b_idx) #indices of non basic variables
 
-    # z_j - c_j
-    k = c_B' * inv(B) * A[:,n_idx] - c[n_idx]'
+  # z_j - c_j
+  k = c_B' * inv(B) * A[:,n_idx] - c[n_idx]'
 
-    println(k)
-    z_c[n_idx] = k
+  println(k)
+  z_c[n_idx] = k
 
   return SimplexTableau(z_c, Y, x_B, obj, b_idx)
 end
