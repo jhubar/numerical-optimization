@@ -4,10 +4,12 @@ using Gurobi
 using ImageView
 using Images
 
+
 include("utilities.jl")
 
 
-PATH = "/mnt/data2/uliege/optimisation/data/"
+PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
+
 
 MEASUREMENTS = [608 1014 1521 3042]
 
@@ -30,69 +32,29 @@ for measurement_id in MEASUREMENTS
 
   R, C = size(c_matrix)
 
-  # https://jump.dev/JuMP.jl/stable/constraints/#Vectorized-constraints-1
-
-  # L1 Norm ------------------------------------------------------------
-  # LP_model = Model(Gurobi.Optimizer)
-
-  @variable(LP_model, x[i=1:C]) # The sparse vector we're looking for
-  @constraint(LP_model, matrix_c, c_matrix * x .== measurements)
-
-  # Expressing objective function as L1 norm
-  # https://support.gurobi.com/hc/en-us/community/posts/360056614871-L1-norm-in-objective-function
-
-  @variable(LP_model, t[i=1:C] >= 0)
-  @constraint(LP_model, x .<= t) # . make comparing each x_i to each t_i
-  @constraint(LP_model, -x .<= t)
-  @variable(LP_model, t_sum >= 0)
-  @constraint(LP_model, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ... This is here 'cos stc wasn't able to put it directly in the objective function
-
-  idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-  save( string("L1_",reconstruct_name_base), colorview(Gray,idata))
-  imshow(idata)
-
-
-  # Closed-form solution to the l2-norm problem ------------------------
-
-  # LP_model2 = Model(Gurobi.Optimizer)
-  # @variable(LP_model2, x[i=1:C]) # The sparse vector we're looking for
-
-  # # The sparse vector must satisfy the compressi ve sensing constraints:
-  # @constraint(LP_model2, matrix_c, c_matrix * x .== measurements)
-
-  # # The sparse vector must be minimized according to L2 norm
-  # # To achieve that, we express the norm "into" a second order cone.
-  # @variable(LP_model2, t >= 0)
-  # @constraint(LP_model2, epigraph, vcat(t, x) in SecondOrderCone())
-
-  # # By minimizing t_sum, we actually minimize the L2 norm
-  # @objective(LP_model2, Min, t)
-
-  # optimize!(LP_model2)
-
-  # idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-  # imshow(idata)
-  # save( string( "L2_",reconstruct_name_base), colorview(Gray,idata))
-
-
   # Expressing as Robust L1 norm -------------------------------------
 
-  # LP_model3 = Model(Gurobi.Optimizer)
 
-  # epsilon = [0.01 for i in 1:C]
+  LP_model3 = Model(Gurobi.Optimizer)
 
-  # @variable(LP_model3, x[i=1:C]) # The sparse vector we're looking for
+  epsilon = [0.01 for i in 1:R]
 
-  # # Constraint + allowing a bit of room for errors
-  # @constraint(LP_model3, matrix_c, (c_matrix * x - measurements) / measurements .<= epsilon )
+  @variable(LP_model3, x[i=1:C]) # The sparse vector we're looking for
 
-  # # Expressing L1 Norm
-  # @variable(LP_model3, t[i=1:C] >= 0)
-  # @constraint(LP_model3, x .<= t) # . make comparing each x_i to each t_i
-  # @constraint(LP_model3, -x .<= t)
-  # @variable(LP_model3, t_sum >= 0)
-  # @constraint(LP_model3, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ..
-  # @objective(LP_model3, Min, t)
+  # Constraint + allowing a bit of room for errors
+  @constraint(LP_model3, matrix_c, (c_matrix * x - measurements) ./ measurements .<= epsilon )
+  #@constraint(LP_model3, matrix_c, c_matrix * x .== measurements )
 
-  # optimize!(LP_model3)
+  # Expressing L1 Norm
+  @variable(LP_model3, t[i=1:C] >= 0)
+  @constraint(LP_model3, x .<= t) # . make comparing each x_i to each t_i
+  @constraint(LP_model3, -x .<= t)
+  @variable(LP_model3, t_sum >= 0)
+  @constraint(LP_model3, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ..
+  @objective(LP_model3, Min, t_sum)
+
+  optimize!(LP_model3)
+  idata = reshape( sparsifying_matrix * value.(x), 78, 78)
+  save( string("L1_",reconstruct_name_base), colorview(Gray,idata))
+
 end
