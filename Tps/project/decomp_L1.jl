@@ -7,9 +7,9 @@ using Images
 include("utilities.jl")
 
 
-PATH = "/mnt/data2/uliege/optimisation/data/"
+PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 
-MEASUREMENTS = [1014] #  608 1014 1521 3042]
+MEASUREMENTS = [608 1521 3042] #  608 1014 1521 3042]
 
 
 # measurements = unpickler( string(PATH, "uncorrupted_measurements_M608.pickle"))
@@ -83,8 +83,8 @@ for measurement_id in MEASUREMENTS
   optimize!(LP_model)
 
   idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-  save( string("L1_",reconstruct_name_base), colorview(Gray,idata))
-  imshow(idata)
+  save( string("L1_new",reconstruct_name_base), colorview(Gray,idata))
+  # imshow(idata)
 
 
 
