@@ -4,19 +4,18 @@ using Gurobi
 using ImageView
 using Images
 
-
 include("utilities.jl")
-
 
 PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 
+# MEASUREMENTS = [608 1014 1521 3042]
+MEASUREMENTS = [1014]
 
-MEASUREMENTS = [3042]
 
 for measurement_id in MEASUREMENTS
 
-  reconstruct_name_base = "uncorrupted_$(measurement_id).png"
-  measurements = unpickler( string(PATH, "uncorrupted_measurements_M$(measurement_id).pickle"))
+  reconstruct_name_base = "noisy_$(measurement_id).png"
+  measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
   measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
   sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
@@ -32,18 +31,18 @@ for measurement_id in MEASUREMENTS
 
   R, C = size(c_matrix)
 
-  # Expressing as Robust L1 norm -------------------------------------
 
 
   LP_model3 = Model(Gurobi.Optimizer)
 
-  epsilon = [0.01 for i in 1:R]
+  epsilon = [0.5 for i in 1:R]
+
 
   @variable(LP_model3, x[i=1:C]) # The sparse vector we're looking for
 
   # Constraint + allowing a bit of room for errors
   @constraint(LP_model3, matrix_c, (c_matrix * x - measurements) ./ measurements .<= epsilon )
-  #@constraint(LP_model3, matrix_c, c_matrix * x .== measurements )
+  @constraint(LP_model3, matrix_c_opposite, (c_matrix * x - measurements) ./ measurements .>= -epsilon )
 
   # Expressing L1 Norm
   @variable(LP_model3, t[i=1:C] >= 0)
@@ -55,6 +54,6 @@ for measurement_id in MEASUREMENTS
 
   optimize!(LP_model3)
   idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-  save( string("L1_",reconstruct_name_base), colorview(Gray,idata))
+  save( string("L1_ep_0_5_",reconstruct_name_base), colorview(Gray,idata))
 
 end
