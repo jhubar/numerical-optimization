@@ -8,7 +8,7 @@ include("utilities.jl")
 
 PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 
-MEASUREMENTS = [608 1041 1521 3042]
+MEASUREMENTS = [608 1014 1521 3042]
 
 #-------------------------------------------------------
 #       l_1 norm for all non-corrupted measurements
@@ -208,7 +208,7 @@ for measurement_id in MEASUREMENTS
   end
 
   #-------------------------------------------------------
-  #       Thrid variant 
+  #       Thrid variant
   #-------------------------------------------------------
 
   for measurement_id in MEASUREMENTS

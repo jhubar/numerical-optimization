@@ -8,7 +8,8 @@ include("utilities.jl")
 
 PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 
-MEASUREMENTS = [608 1041 1521 3042]
+# MEASUREMENTS = [608 1014 1521 3042]
+MEASUREMENTS = [1014]
 
 for measurement_id in MEASUREMENTS
 
