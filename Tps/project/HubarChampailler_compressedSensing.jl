@@ -105,56 +105,60 @@ MEASUREMENTS = [1014] # 608 1014 1521 3042]
 #       First variant
 #-------------------------------------------------------
 
-# for EPSILON in [0.1 0.01 0.001]
-#   for measurement_id in MEASUREMENTS
+for EPSILON in [0.1 0.01 0.001]
+  for measurement_id in MEASUREMENTS
 
-#     reconstruct_name_base = "noisy_$(measurement_id).png"
-#     measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
-#     measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
-#     sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
+    reconstruct_name_base = "noisy_$(measurement_id).png"
+    measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
+    measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
+    sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
-#     print("Working on $(reconstruct_name_base)")
+    print("Working on $(reconstruct_name_base)")
 
-#     print(size(sparsifying_matrix))
-#     print(size(measurement_matrix))
-#     print(size(measurements))
+    print(size(sparsifying_matrix))
+    print(size(measurement_matrix))
+    print(size(measurements))
 
-#     c_matrix = measurement_matrix * sparsifying_matrix
-#     print(size(c_matrix))
-
-
-#     R, C = size(c_matrix)
+    c_matrix = measurement_matrix * sparsifying_matrix
+    print(size(c_matrix))
 
 
-
-#     LP_model3 = Model(Gurobi.Optimizer)
-
-#     epsilon = [EPSILON for i in 1:R]
-#     # epsilon = [0.5 for i in 1:R]
+    R, C = size(c_matrix)
 
 
-#     @variable(LP_model3, x[i=1:C]) # The sparse vector we're looking for
 
-#     # Constraint + allowing a bit of room for errors
-#     @constraint(LP_model3, matrix_c, (c_matrix * x - measurements) ./ measurements .<= epsilon )
-#     @constraint(LP_model3, matrix_c_opposite, (c_matrix * x - measurements) ./ measurements .>= -epsilon )
+    LP_model3 = Model(Gurobi.Optimizer)
 
-#     # Expressing L1 Norm
-#     @variable(LP_model3, t[i=1:C] >= 0)
-#     @constraint(LP_model3, x .<= t) # . make comparing each x_i to each t_i
-#     @constraint(LP_model3, -x .<= t)
-#     @variable(LP_model3, t_sum >= 0)
-#     @constraint(LP_model3, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ..
-#     @objective(LP_model3, Min, t_sum)
+    epsilon = [EPSILON for i in 1:R]
+    # epsilon = [0.5 for i in 1:R]
 
-#     optimize!(LP_model3)
-#     idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-#     save( string("L1_ep_0_01_",reconstruct_name_base), colorview(Gray,idata))
 
-#     save( string("L1_bis_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
+    @variable(LP_model3, x[i=1:C]) # The sparse vector we're looking for
 
-#   end
-# end
+    # Constraint + allowing a bit of room for errors
+    @constraint(LP_model3, matrix_c, (c_matrix * x - measurements) ./ measurements .<= epsilon )
+    @constraint(LP_model3, matrix_c_opposite, (c_matrix * x - measurements) ./ measurements .>= -epsilon )
+
+    # Expressing L1 Norm
+    @variable(LP_model3, t[i=1:C] >= 0)
+    @constraint(LP_model3, x .<= t) # . make comparing each x_i to each t_i
+    @constraint(LP_model3, -x .<= t)
+    @variable(LP_model3, t_sum >= 0)
+    @constraint(LP_model3, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ..
+    @objective(LP_model3, Min, t_sum)
+
+    start = time()
+    optimize!(LP_model3)
+    elapsed = time() - start
+    print("!!! Robust 1 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
+
+    idata = reshape( sparsifying_matrix * value.(x), 78, 78)
+    save( string("L1_ep_0_01_",reconstruct_name_base), colorview(Gray,idata))
+
+    save( string("L1_bis_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
+
+  end
+end
 
 
 # #-------------------------------------------------------
@@ -238,7 +242,7 @@ for measurement_id in MEASUREMENTS
 
   tau_base = R
 
-  for TAU in [tau_base*0.5 tau_base tau_base*2]
+  for TAU in [tau_base*0.5] # tau_base tau_base*2]
 
 
     LP_model4 = Model(Gurobi.Optimizer)
@@ -258,10 +262,15 @@ for measurement_id in MEASUREMENTS
     @objective(LP_model4, Min, l2norm)
 
     #write_to_file(LP_model4, "model.mps")
+    start = time()
     optimize!(LP_model4)
+    elapsed = time() - start
 
     idata = reshape( sparsifying_matrix * value.(s), 78, 78)
     save( string("L1_new_robust_",reconstruct_name_base), colorview(Gray,idata))
+
+    print("!!! Robust 3 $(reconstruct_name_base) tau=$(TAU) elpase=$(elapsed) seconds\n")
+
 
     save( string("Robust3_tau_", replace( @sprintf( "%f", TAU), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
   end
