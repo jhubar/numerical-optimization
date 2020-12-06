@@ -41,7 +41,7 @@ plt.plot(hist[1][0:len(hist[0])], hist[0], label=name_cvt(NAME1))
 plt.plot(hist2[1][0:len(hist2[0])], hist2[0], label=name_cvt(NAME2))
 plt.title("Noise histogram")
 plt.legend()
-plt.savefig(f"histo_${NAME1}")
+plt.savefig(f"histo_{NAME1}")
 
 
 
