@@ -218,25 +218,28 @@ MEASUREMENTS = [1014] # 608 1014 1521 3042]
 #   #       Third variant
 #   #-------------------------------------------------------
 
-for TAU in [0.1 0.01 0.001]
-  for measurement_id in MEASUREMENTS
+for measurement_id in MEASUREMENTS
+  reconstruct_name_base = "noisy_$(measurement_id).png"
+  measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
+  measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
+  sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
-    reconstruct_name_base = "noisy_$(measurement_id).png"
-    measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
-    measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
-    sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
+  print("Working on $(reconstruct_name_base)")
 
-    print("Working on $(reconstruct_name_base)")
+  print(size(sparsifying_matrix))
+  print(size(measurement_matrix))
+  print(size(measurements))
 
-    print(size(sparsifying_matrix))
-    print(size(measurement_matrix))
-    print(size(measurements))
-
-    c_matrix = measurement_matrix * sparsifying_matrix
-    print(size(c_matrix))
+  c_matrix = measurement_matrix * sparsifying_matrix
+  print(size(c_matrix))
 
 
-    R, C = size(c_matrix)
+  R, C = size(c_matrix)
+
+  tau_base = R
+
+  for TAU in [tau_base*0.5 tau_base tau_base*2]
+
 
     LP_model4 = Model(Gurobi.Optimizer)
 
@@ -249,14 +252,15 @@ for TAU in [0.1 0.01 0.001]
     @constraint(LP_model4, sum(t) <= TAU)
 
     @variable(LP_model4, l2norm >= 0)
-    @constraint(LP_model4, sum( (c_matrix * s - measurements) .^ 2) <= l2norm)
+    # @constraint(LP_model4, sum( (c_matrix * s - measurements) .^ 2) <= l2norm)
+    @constraint(LP_model4, norm2, vcat(l2norm, c_matrix * s - measurements) in SecondOrderCone())
 
     @objective(LP_model4, Min, l2norm)
 
-    write_to_file(LP_model4, "model.mps")
+    #write_to_file(LP_model4, "model.mps")
     optimize!(LP_model4)
 
-    idata = reshape( sparsifying_matrix * value.(x), 78, 78)
+    idata = reshape( sparsifying_matrix * value.(s), 78, 78)
     save( string("L1_new_robust_",reconstruct_name_base), colorview(Gray,idata))
 
     save( string("Robust3_tau_", replace( @sprintf( "%f", TAU), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
