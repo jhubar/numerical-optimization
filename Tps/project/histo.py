@@ -12,7 +12,7 @@ def name_cvt( name):
     s = s.replace(".png","")
     s = s.replace("noisy_"," M")
     s = s.replace("_",",")
-    s = re.sub(r'10+',"1",s)
+    s = re.sub(r',10+',",1",s)
     return s
 
 ORIGINAL_IMAGE = "L1_newuncorrupted_3042.png"
@@ -36,11 +36,12 @@ BINS = 64
 hist = np.histogram(aim1 - aim2, bins=BINS)
 hist2 = np.histogram(aim1 - aim3, bins=BINS)
 
+plt.figure()
 plt.plot(hist[1][0:len(hist[0])], hist[0], label=name_cvt(NAME1))
 plt.plot(hist2[1][0:len(hist2[0])], hist2[0], label=name_cvt(NAME2))
 plt.title("Noise histogram")
 plt.legend()
-plt.show()
+plt.savefig(f"histo_${NAME1}")
 
 
 
@@ -60,6 +61,8 @@ def plot_spectrum(name, im):
 
 plt.figure()
 plot_spectrum(NAME1, aim2)
+plt.savefig(f"fft_{NAME1}")
 plt.figure()
 plot_spectrum(NAME2, aim3)
+plt.savefig(f"fft_{NAME2}")
 plt.show()
