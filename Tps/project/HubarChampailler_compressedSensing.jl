@@ -112,7 +112,7 @@ end
 #-------------------------------------------------------
 
 for measurement_id in MEASUREMENTS
-  for EPSILON in [0.1] # [0.01 0.001]
+  for EPSILON in [0.1 0.01 0.001]
 
     reconstruct_name_base = "noisy_$(measurement_id).png"
     measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
