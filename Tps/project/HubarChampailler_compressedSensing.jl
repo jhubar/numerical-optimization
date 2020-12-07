@@ -154,13 +154,11 @@ for measurement_id in MEASUREMENTS
     @objective(LP_model3, Min, t_sum)
 
     start = time()
-    #optimize!(LP_model3)
+    optimize!(LP_model3)
     elapsed = time() - start
     print("!!! Robust 1 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
 
     idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-    #save( string("L1_ep_0_01_",reconstruct_name_base), colorview(Gray,idata))
-
     save( string("Robust1_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
 
   end
@@ -211,14 +209,12 @@ for EPSILON in [0.1 0.01 0.001]
 
     #write_to_file(LP_model5, "model.mps")
     start = time()
-    #optimize!(LP_model5)
+    optimize!(LP_model5)
     elapsed = time() - start
 
     print("!!! Robust 2 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
 
     idata = reshape( sparsifying_matrix * value.(s), 78, 78)
-    save( string("L5_",reconstruct_name_base), colorview(Gray,idata))
-
     save( string("Robust2_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
 
   end
@@ -262,18 +258,17 @@ for measurement_id in MEASUREMENTS
     @constraint(LP_model4, sum(t) <= TAU)
 
     @variable(LP_model4, l2norm >= 0)
-    # @constraint(LP_model4, sum( (c_matrix * s - measurements) .^ 2) <= l2norm)
+    # @constraint(LP_model4, sum( (c_matrix * s - measurements) .^ 2) <= l2norm) # Gurobi can't work on this one
     @constraint(LP_model4, norm2, vcat(l2norm, c_matrix * s - measurements) in SecondOrderCone())
 
     @objective(LP_model4, Min, l2norm)
 
     #write_to_file(LP_model4, "model.mps")
     start = time()
-    #optimize!(LP_model4)
+    optimize!(LP_model4)
     elapsed = time() - start
 
     idata = reshape( sparsifying_matrix * value.(s), 78, 78)
-    save( string("L1_new_robust_",reconstruct_name_base), colorview(Gray,idata))
 
     print("!!! Robust 3 $(reconstruct_name_base) tau=$(TAU) elpase=$(elapsed) seconds\n")
 
