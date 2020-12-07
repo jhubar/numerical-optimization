@@ -10,7 +10,7 @@ include("utilities.jl")
 #PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 PATH = "/mnt/data2/uliege/optimisation/data/"
 
-if not isdir(PATH)
+if !isdir(PATH)
   println("Can't find data directory")
   exit()
 end
