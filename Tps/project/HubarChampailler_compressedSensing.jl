@@ -10,103 +10,109 @@ include("utilities.jl")
 #PATH = "/Users/julienhubar/Documents/#Master1/numerical-optimization/Tps/project/data/"
 PATH = "/mnt/data2/uliege/optimisation/data/"
 
-MEASUREMENTS = [1014] # 608 1014 1521 3042]
+if not isdir(PATH)
+  println("Can't find data directory")
+  exit()
+end
+
+
+MEASUREMENTS = [608 1014 1521 3042]
 
 # #-------------------------------------------------------
 # #       l_1 norm for all non-corrupted measurements
 # #-------------------------------------------------------
 
-# for measurement_id in MEASUREMENTS
+for measurement_id in MEASUREMENTS
 
-#   reconstruct_name_base = "uncorrupted_$(measurement_id).png"
-#   measurements = unpickler( string(PATH, "uncorrupted_measurements_M$(measurement_id).pickle"))
-#   measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
-#   sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
+  reconstruct_name_base = "uncorrupted_$(measurement_id).png"
+  measurements = unpickler( string(PATH, "uncorrupted_measurements_M$(measurement_id).pickle"))
+  measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
+  sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
-#   print("Working on $(reconstruct_name_base)")
+  print("Working on $(reconstruct_name_base)")
 
-#   print(size(sparsifying_matrix))
-#   print(size(measurement_matrix))
-#   print(size(measurements))
+  print(size(sparsifying_matrix))
+  print(size(measurement_matrix))
+  print(size(measurements))
 
-#   c_matrix = measurement_matrix * sparsifying_matrix
-#   print(size(c_matrix))
-
-
-#   R, C = size(c_matrix)
-
-#   # L1 Norm ------------------------------------------------------------
-#   LP_model = Model(Gurobi.Optimizer)
-
-#   @variable(LP_model, x[i=1:C]) # The sparse vector we're looking for
-#   @constraint(LP_model, matrix_c, c_matrix * x .== measurements)
+  c_matrix = measurement_matrix * sparsifying_matrix
+  print(size(c_matrix))
 
 
-#   @variable(LP_model, t[i=1:C] >= 0)
-#   @constraint(LP_model, x .<= t) # . make comparing each x_i to each t_i
-#   @constraint(LP_model, -x .<= t)
-#   @variable(LP_model, t_sum >= 0)
-#   @constraint(LP_model, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ... This is here 'cos stc wasn't able to put it directly in the objective function
-#   @objective(LP_model, Min, t_sum)
-#   optimize!(LP_model)
+  R, C = size(c_matrix)
 
-#   idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-#   save( string("L1_non_opt_",reconstruct_name_base), colorview(Gray,idata))
-#   # imshow(idata)
-# end
+  # L1 Norm ------------------------------------------------------------
+  LP_model = Model(Gurobi.Optimizer)
+
+  @variable(LP_model, x[i=1:C]) # The sparse vector we're looking for
+  @constraint(LP_model, matrix_c, c_matrix * x .== measurements)
+
+
+  @variable(LP_model, t[i=1:C] >= 0)
+  @constraint(LP_model, x .<= t) # . make comparing each x_i to each t_i
+  @constraint(LP_model, -x .<= t)
+  @variable(LP_model, t_sum >= 0)
+  @constraint(LP_model, sum(t) == t_sum) # sum(t) = t_0 + t_1 + t_2 + ... This is here 'cos stc wasn't able to put it directly in the objective function
+  @objective(LP_model, Min, t_sum)
+  optimize!(LP_model)
+
+  idata = reshape( sparsifying_matrix * value.(x), 78, 78)
+  save( string("L1_non_opt_",reconstruct_name_base), colorview(Gray,idata))
+  # imshow(idata)
+end
 
 # #-------------------------------------------------------
 # #       l_2norm for all non-corrupted measurements
 # #-------------------------------------------------------
 
-# for measurement_id in MEASUREMENTS
+for measurement_id in MEASUREMENTS
 
-#   reconstruct_name_base = "uncorrupted_$(measurement_id).png"
-#   measurements = unpickler( string(PATH, "uncorrupted_measurements_M$(measurement_id).pickle"))
-#   measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
-#   sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
+  reconstruct_name_base = "uncorrupted_$(measurement_id).png"
+  measurements = unpickler( string(PATH, "uncorrupted_measurements_M$(measurement_id).pickle"))
+  measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
+  sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
-#   print("Working on $(reconstruct_name_base)")
+  print("Working on $(reconstruct_name_base)")
 
-#   print(size(sparsifying_matrix))
-#   print(size(measurement_matrix))
-#   print(size(measurements))
+  print(size(sparsifying_matrix))
+  print(size(measurement_matrix))
+  print(size(measurements))
 
-#   c_matrix = measurement_matrix * sparsifying_matrix
-#   print(size(c_matrix))
+  c_matrix = measurement_matrix * sparsifying_matrix
+  print(size(c_matrix))
 
 
-#   R, C = size(c_matrix)
-#   # Closed-form solution to the l2-norm problem ------------------------
+  R, C = size(c_matrix)
+  # Closed-form solution to the l2-norm problem ------------------------
 
-#   LP_model2 = Model(Gurobi.Optimizer)
-#   @variable(LP_model2, x[i=1:C]) # The sparse vector we're looking for
+  LP_model2 = Model(Gurobi.Optimizer)
+  @variable(LP_model2, x[i=1:C]) # The sparse vector we're looking for
 
-#   # The sparse vector must satisfy the compressi ve sensing constraints:
-#   @constraint(LP_model2, matrix_c, c_matrix * x .== measurements)
+  # The sparse vector must satisfy the compressi ve sensing constraints:
+  @constraint(LP_model2, matrix_c, c_matrix * x .== measurements)
 
-#   # The sparse vector must be minimized according to L2 norm
-#   # To achieve that, we express the norm "into" a second order cone.
-#   @variable(LP_model2, t >= 0)
-#   @constraint(LP_model2, epigraph, vcat(t, x) in SecondOrderCone())
+  # The sparse vector must be minimized according to L2 norm
+  # To achieve that, we express the norm "into" a second order cone.
+  @variable(LP_model2, t >= 0)
+  @constraint(LP_model2, epigraph, vcat(t, x) in SecondOrderCone())
 
-#   # By minimizing t_sum, we actually minimize the L2 norm
-#   @objective(LP_model2, Min, t)
+  # By minimizing t_sum, we actually minimize the L2 norm
+  @objective(LP_model2, Min, t)
 
-#   optimize!(LP_model2)
+  optimize!(LP_model2)
 
-#   idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-#   imshow(idata)
-#   save( string( "L2_",reconstruct_name_base), colorview(Gray,idata))
-# end
+  idata = reshape( sparsifying_matrix * value.(x), 78, 78)
+  imshow(idata)
+  save( string( "L2_",reconstruct_name_base), colorview(Gray,idata))
+end
 
 
 #-------------------------------------------------------
 #       First variant
 #-------------------------------------------------------
 
-for EPSILON in [0.1 0.01 0.001]
-  for measurement_id in MEASUREMENTS
+for measurement_id in MEASUREMENTS
+  for EPSILON in [0.1] # [0.01 0.001]
 
     reconstruct_name_base = "noisy_$(measurement_id).png"
     measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
@@ -148,14 +154,14 @@ for EPSILON in [0.1 0.01 0.001]
     @objective(LP_model3, Min, t_sum)
 
     start = time()
-    optimize!(LP_model3)
+    #optimize!(LP_model3)
     elapsed = time() - start
     print("!!! Robust 1 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
 
     idata = reshape( sparsifying_matrix * value.(x), 78, 78)
-    save( string("L1_ep_0_01_",reconstruct_name_base), colorview(Gray,idata))
+    #save( string("L1_ep_0_01_",reconstruct_name_base), colorview(Gray,idata))
 
-    save( string("L1_bis_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
+    save( string("Robust1_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
 
   end
 end
@@ -165,58 +171,58 @@ end
 # #       Second variant
 # #-------------------------------------------------------
 
-# for EPSILON in [0.1 0.01 0.001]
-#   for measurement_id in MEASUREMENTS
+for EPSILON in [0.1 0.01 0.001]
+  for measurement_id in MEASUREMENTS
 
-#     reconstruct_name_base = "noisy_$(measurement_id).png"
-#     measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
-#     measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
-#     sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
+    reconstruct_name_base = "noisy_$(measurement_id).png"
+    measurements = unpickler( string(PATH, "noisy_measurements_M$(measurement_id).pickle"))
+    measurement_matrix = unpickler( string(PATH, "measurement_matrix_M$(measurement_id).pickle"))
+    sparsifying_matrix = unpickler( string(PATH, "basis_matrix.pickle"))
 
-#     print("Working on $(reconstruct_name_base)")
+    print("Working on $(reconstruct_name_base)")
 
-#     print(size(sparsifying_matrix))
-#     print(size(measurement_matrix))
-#     print(size(measurements))
+    print(size(sparsifying_matrix))
+    print(size(measurement_matrix))
+    print(size(measurements))
 
-#     c_matrix = measurement_matrix * sparsifying_matrix
-#     print(size(c_matrix))
-
-
-#     R, C = size(c_matrix)
+    c_matrix = measurement_matrix * sparsifying_matrix
+    print(size(c_matrix))
 
 
-#     LP_model5 = Model(Gurobi.Optimizer)
+    R, C = size(c_matrix)
 
-#     # The sparse vector we're looking for
-#     @variable(LP_model5, s[i=1:C])
 
-#     # Expressing L1 Norm over s
-#     @variable(LP_model5, t[i=1:C] >= 0)
-#     @constraint(LP_model5, s .<= t) # . make comparing each x_i to each t_i
-#     @constraint(LP_model5, -s .<= t)
-#     @variable(LP_model5, l1norm >= 0)
-#     @constraint(LP_model5, sum(t) == l1norm)
+    LP_model5 = Model(Gurobi.Optimizer)
 
-#     # Expressing the boundary on the l2 norm of error
-#     @constraint(LP_model5, l2norm, vcat(EPSILON, c_matrix * s - measurements) in SecondOrderCone())
+    # The sparse vector we're looking for
+    @variable(LP_model5, s[i=1:C])
 
-#     @objective(LP_model5, Min, l1norm)
+    # Expressing L1 Norm over s
+    @variable(LP_model5, t[i=1:C] >= 0)
+    @constraint(LP_model5, s .<= t) # . make comparing each x_i to each t_i
+    @constraint(LP_model5, -s .<= t)
+    @variable(LP_model5, l1norm >= 0)
+    @constraint(LP_model5, sum(t) == l1norm)
 
-#     #write_to_file(LP_model5, "model.mps")
-#     start = time()
-#     optimize!(LP_model5)
-#     elapsed = time() - start
+    # Expressing the boundary on the l2 norm of error
+    @constraint(LP_model5, l2norm, vcat(EPSILON, c_matrix * s - measurements) in SecondOrderCone())
 
-#     print("!!! Robust 2 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
+    @objective(LP_model5, Min, l1norm)
 
-#     idata = reshape( sparsifying_matrix * value.(s), 78, 78)
-#     save( string("L5_",reconstruct_name_base), colorview(Gray,idata))
+    #write_to_file(LP_model5, "model.mps")
+    start = time()
+    #optimize!(LP_model5)
+    elapsed = time() - start
 
-#     save( string("Robust2_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
+    print("!!! Robust 2 $(reconstruct_name_base) epsilon=$(EPSILON) elpase=$(elapsed) seconds\n")
 
-#   end
-# end
+    idata = reshape( sparsifying_matrix * value.(s), 78, 78)
+    save( string("L5_",reconstruct_name_base), colorview(Gray,idata))
+
+    save( string("Robust2_ep_", replace( @sprintf( "%f", EPSILON), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
+
+  end
+end
 
 #   #-------------------------------------------------------
 #   #       Third variant
@@ -242,7 +248,7 @@ for measurement_id in MEASUREMENTS
 
   tau_base = R
 
-  for TAU in [tau_base*0.5] # tau_base tau_base*2]
+  for TAU in [tau_base*0.5 tau_base tau_base*2]
 
 
     LP_model4 = Model(Gurobi.Optimizer)
@@ -263,14 +269,13 @@ for measurement_id in MEASUREMENTS
 
     #write_to_file(LP_model4, "model.mps")
     start = time()
-    optimize!(LP_model4)
+    #optimize!(LP_model4)
     elapsed = time() - start
 
     idata = reshape( sparsifying_matrix * value.(s), 78, 78)
     save( string("L1_new_robust_",reconstruct_name_base), colorview(Gray,idata))
 
     print("!!! Robust 3 $(reconstruct_name_base) tau=$(TAU) elpase=$(elapsed) seconds\n")
-
 
     save( string("Robust3_tau_", replace( @sprintf( "%f", TAU), "." => "_"), reconstruct_name_base), colorview(Gray,idata))
   end
