@@ -8,5 +8,5 @@
 # Teaching assistant link of the course.
 1. [Web page](https://people.montefiore.uliege.be/mberger/)
 # Authors
-1. [Julien Hubar](https://github.com/jhubar)
+1. [Julien Hubar](https://jhubar.github.io)
 1. [Stéphane Champailler](https://github.com/wiz21b)
